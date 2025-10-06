@@ -1,130 +1,134 @@
 #include <iostream>
-#include <fstream>
 #include <iomanip>
+#include <fstream>
 #include <string>
-#include <sstream>
 #include <cmath>
 #include <limits>
+#include <sstream>
+#include <algorithm>
 
 using namespace std;
 
-double read_double(const string& prompt) {
+double ler_double(const string& prompt) {
     double value;
     cout << prompt;
     while (!(cin >> value)) {
-        cout << "Invalid input. Please enter a number: ";
+        cout << "Entrada invalida. Por favor, digite um numero: ";
         cin.clear();
         cin.ignore(numeric_limits<streamsize>::max(), '\n');
     }
     return value;
 }
 
-void save_report(const string& report) {
-    ofstream file("travel_history.txt", ios::app);
+void salvar_relatorio(const string& report) {
+    ofstream file("historico_viagens.txt", ios::app);
     if (file.is_open()) {
         file << report << "\n";
         file.close();
-        cout << "\nTravel report saved in travel_history.txt" << endl;
+        cout << "\nRelatorio da viagem foi salvo em historico_viagens.txt" << endl;
     } else {
-        cout << "Error while trying to save the report." << endl;
+        cout << "Erro ao tentar salvar o relatorio." << endl;
     }
 }
 
-void pause_console() {
-    cout << "\nPress ENTER to close...";
+void pausar_console() {
+    cout << "\nPressione ENTER para fechar...";
     cin.ignore(numeric_limits<streamsize>::max(), '\n');
     cin.get();
 }
 
 int main() {
-    double trip_distance, car_consumption, gas_price, avg_speed, budget, time_limit, tank_capacity;
+    double trip_distance, car_consumption, gas_price, average_speed, budget, time_limit, tank_liters;
 
     cout << fixed << setprecision(2);
 
-    cout << "\n--- Travel Calculator ---\n";
-    cout << "Enter your car and trip details:\n\n";
+    cout << "\n--- Calculadora de Viagem ---\n";
+    cout << "Digite os dados do seu carro e da viagem:\n\n";
 
-    trip_distance = read_double("Trip distance (km): ");
-    car_consumption = read_double("Car fuel efficiency (km/l): ");
-    tank_capacity = read_double("Fuel tank capacity (liters): ");
-    gas_price = read_double("Gasoline price (R$/liter): ");
-    avg_speed = read_double("Average speed (km/h): ");
-    budget = read_double("Trip budget (R$): ");
-    time_limit = read_double("Maximum allowed travel time (hours): ");
+    trip_distance = ler_double("Qual a distancia da viagem (km)? ");
+    car_consumption = ler_double("Qual o consumo do carro (km/l)? ");
+    tank_liters = ler_double("Quantos litros cabem no tanque? ");
+    gas_price = ler_double("Qual o preco da gasolina (R$/litro)? ");
+    average_speed = ler_double("Qual sera a velocidade media (km/h)? ");
+    budget = ler_double("Qual o orcamento para a viagem (R$)? ");
+    time_limit = ler_double("Qual o tempo maximo para a viagem (em horas)? ");
 
     double total_liters = trip_distance / car_consumption;
-    double total_cost = total_liters * gas_price;
-    double total_time = trip_distance / avg_speed;
+    double final_cost = total_liters * gas_price;
+    double final_time = trip_distance / average_speed;
 
-    double total_range = car_consumption * tank_capacity;
-    int fuel_stops = 0;
-    if (total_range > 0) {
-        fuel_stops = ceil(trip_distance / total_range) - 1;
+    double total_autonomy = car_consumption * tank_liters;
+    int refuel_stops = 0;
+    if (total_autonomy > 0) {
+        refuel_stops = ceil(trip_distance / total_autonomy) - 1;
     }
-    if (fuel_stops < 0) fuel_stops = 0;
+    if (refuel_stops < 0) refuel_stops = 0;
 
-    int rest_stops = floor(total_time / 2);
+    int rest_stops = floor(final_time / 2);
 
-    bool budget_ok = budget >= total_cost;
-    bool time_ok = total_time <= time_limit;
+    bool is_budget_ok = budget >= final_cost;
+    bool is_time_ok = final_time <= time_limit;
 
-    double eco_speed = max(40.0, avg_speed - 20);
+    double eco_speed = max(40.0, average_speed - 20);
     double eco_consumption = car_consumption * 1.10;
     double eco_cost = (trip_distance / eco_consumption) * gas_price;
     double eco_time = trip_distance / eco_speed;
 
-    double fast_speed = avg_speed + 20;
+    double fast_speed = average_speed + 20;
     double fast_consumption = car_consumption * 0.90;
     double fast_cost = (trip_distance / fast_consumption) * gas_price;
     double fast_time = trip_distance / fast_speed;
 
-    cout << "\n===== Trip Summary =====\n";
-    cout << "Total travel time: " << total_time << " hours\n";
-    cout << "Total fuel needed: " << total_liters << " L\n";
-    cout << "Total travel cost: R$ " << total_cost << "\n";
-    cout << "Fuel stops: " << fuel_stops << "\n";
-    cout << "Rest stops: " << rest_stops << "\n";
+    cout << "\n===== Resumo do seu Plano de Viagem =====\n";
+    cout << "Tempo total de viagem: " << final_time << " horas\n";
+    cout << "Total de combustivel: " << total_liters << " L\n";
+    cout << "Custo total da viagem: R$ " << final_cost << "\n";
+    cout << "Paradas para abastecer: " << refuel_stops << "\n";
+    cout << "Paradas para descanso: " << rest_stops << "\n";
 
-    cout << "\n--- Resource Check ---\n";
-    if (!budget_ok)
-        cout << "-> WARNING: Not enough budget! (Missing R$ " << (total_cost - budget) << ")\n";
+    cout << "\n--- Checagem de Recursos ---\n";
+    if (!is_budget_ok)
+        cout << "-> ATENCAO: Vai faltar dinheiro! (Falta R$ " << (final_cost - budget) << ")\n";
     else
-        cout << "-> Your budget is sufficient for the trip!\n";
+        cout << "-> Seu orcamento e suficiente para a viagem!\n";
 
-    if (!time_ok)
-        cout << "-> WARNING: Not enough time! (Exceeds by " << (total_time - time_limit) << " h)\n";
+    if (!is_time_ok)
+        cout << "-> ATENCAO: Voce nao tem tempo suficiente! (Vai passar " << (final_time - time_limit) << " h do limite)\n";
     else
-        cout << "-> You have enough time for the trip!\n";
+        cout << "-> O tempo e suficiente para a viagem!\n";
 
-    cout << "\n--- Alternative Route Simulation ---\n";
-    cout << "1. Economy Route: Speed " << eco_speed << " km/h | Cost R$ " << eco_cost << " | Time " << eco_time << " h\n";
-    cout << "2. Fast Route   : Speed " << fast_speed << " km/h | Cost R$ " << fast_cost << " | Time " << fast_time << " h\n";
+    cout << "\n--- Simulacao de Rotas Alternativas ---\n";
+    cout << "1. Rota Economica: Vel " << eco_speed << " km/h | Custo R$ " << eco_cost << " | Tempo " << eco_time << " h\n";
+    cout << "2. Rota Rapida   : Vel " << fast_speed << " km/h | Custo R$ " << fast_cost << " | Tempo " << fast_time << " h\n";
 
-    cout << "\n>>> Suggestion: ";
-    if (budget_ok && time_ok) {
-        cout << "Your original plan works. However, the ECONOMY ROUTE can save you R$ " << (total_cost - eco_cost) << ".\n";
+    cout << "\n>>> Minha Sugestao: ";
+    if (is_budget_ok && is_time_ok) {
+        cout << "Seu plano original funciona. Se quiser, a ROTA ECONOMICA pode te poupar R$ " << (final_cost - eco_cost) << ".\n";
     } else if (eco_cost <= budget && eco_time <= time_limit) {
-        cout << "Your current plan doesn't fit, but the ECONOMY ROUTE is a good option!\n";
+        cout << "Seu plano nao funciona, mas a ROTA ECONOMICA e uma boa opcao!\n";
     } else if (fast_cost <= budget && fast_time <= time_limit) {
-        cout << "Your current plan doesn't fit, but the FAST ROUTE could work!\n";
+        cout << "Seu plano nao funciona, mas a ROTA RAPIDA pode ser uma alternativa!\n";
     } else {
-        cout << "None of the routes fit your budget and time. Consider adjusting your plan.\n";
+        cout << "Nenhuma das rotas parece funcionar com seu orcamento e tempo. E melhor rever o plano.\n";
     }
 
     stringstream ss;
     ss << fixed << setprecision(2);
-    ss << "Distance: " << trip_distance << " km"
-       << " | Cost: R$ " << total_cost
-       << " | Time: " << total_time << " h"
-       << " | Fuel Stops: " << fuel_stops
-       << " | Rest Stops: " << rest_stops
-       << " | Budget OK: " << (budget_ok ? "Yes" : "No")
-       << " | Time OK: " << (time_ok ? "Yes" : "No");
+    ss << "Distancia: " << trip_distance << " km"
+       << " | Custo: R$ " << final_cost
+       << " | Tempo: " << final_time << " h"
+       << " | Paradas Abastecer: " << refuel_stops
+       << " | Paradas Descanso: " << rest_stops
+       << " | Orcamento OK: " << (is_budget_ok ? "Sim" : "Nao")
+       << " | Tempo OK: " << (is_time_ok ? "Sim" : "Nao");
 
     string final_report = ss.str();
 
-    save_report(final_report);
+    salvar_relatorio(final_report);
 
-    pause_console();
+    pausar_console();
     return 0;
+}
+
+
 }
